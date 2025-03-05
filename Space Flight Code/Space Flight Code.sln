@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35806.99 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Space Flight Code", "Space Flight Code.csproj", "{6276DE0C-8C5F-40C9-B8AF-ED90324927B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Space Flight Code", "Space Flight Code.csproj", "{93670B15-901F-411C-A65D-5EA87939E411}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6276DE0C-8C5F-40C9-B8AF-ED90324927B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6276DE0C-8C5F-40C9-B8AF-ED90324927B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6276DE0C-8C5F-40C9-B8AF-ED90324927B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6276DE0C-8C5F-40C9-B8AF-ED90324927B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93670B15-901F-411C-A65D-5EA87939E411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93670B15-901F-411C-A65D-5EA87939E411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93670B15-901F-411C-A65D-5EA87939E411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93670B15-901F-411C-A65D-5EA87939E411}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {68C6E90C-1D08-4837-8CCB-A808E28E945F}
+		SolutionGuid = {8F15612F-7A11-4CAE-921F-1A3B50E86E8F}
 	EndGlobalSection
 EndGlobal
