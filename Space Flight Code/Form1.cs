@@ -13,6 +13,10 @@ using System.Windows.Media.Media3D;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls;
+using System.IO;
+using System.Windows;
+using System.Security.Policy;
+using System.Windows.Shapes;
 
 namespace Space_Flight_Code
 {
@@ -28,7 +32,7 @@ namespace Space_Flight_Code
             // Создание WPF-элемента
             helixViewport = new HelixViewport3D()
             {
-                //ZoomExtentsWhenLoaded = true,
+                ZoomExtentsWhenLoaded = true,
                 Background = System.Windows.Media.Brushes.Black
             };
 
@@ -47,43 +51,75 @@ namespace Space_Flight_Code
             helixViewport.ShowFrameRate = true;        // Отключает FPS-счетчик
             helixViewport.ShowCoordinateSystem = false; // Отключает оси координат
             helixViewport.ShowCameraTarget = false;     // Отключает маркер центра вращения
+            helixViewport.Camera.LookAt();
 
 
-                // Добавление сферы
-                AddSphere();
+            // Добавление сферы
+            Earth earth = new Earth();
+            Moon moon = new Moon();
+
+            helixViewport.Children.Add(new ModelVisual3D { Content = earth.Draw() });
+            helixViewport.Children.Add(new ModelVisual3D { Content = moon.Draw() });
+
+
+            helixViewport.ZoomExtents();
+
         }
 
-        private void AddSphere()
-        {
-            // Создание сферы
-            var meshBuilder = new MeshBuilder();
-            meshBuilder.AddSphere(new Point3D(0, 0, 0), 1.0, 40, 40);
+    }
 
-            // Загрузка текстуры
-            var material = new DiffuseMaterial(
+    public class Object
+    {
+        public double Radius;
+        public Point3D Center;
+        public string texture;
+
+        public Model3DGroup Draw()
+        {
+            var meshBuilder = new MeshBuilder();
+            meshBuilder.AddSphere(Center, Radius, 40, 40);
+        
+
+        var material = new DiffuseMaterial(
                 new ImageBrush
                 {
                     ImageSource = new BitmapImage(
-                        new Uri("E:/Projects/space_flight/Space Flight Code/materials/earth.jpg")),
+                        new Uri(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, texture))),
                     Stretch = Stretch.Fill
                 }
             );
-
-            // Создание модели
-            var sphere = new GeometryModel3D
+        var sphere = new GeometryModel3D
             {
                 Geometry = meshBuilder.ToMesh(),
                 Material = material
             };
 
-            // Добавление в сцену
-            var modelGroup = new Model3DGroup();
-            modelGroup.Children.Add(sphere);
-            modelGroup.Children.Add(new AmbientLight(Colors.White));
 
-            helixViewport.Children.Add(new ModelVisual3D { Content = modelGroup });
-            helixViewport.ZoomExtents();
+        var modelGroup = new Model3DGroup();
+        modelGroup.Children.Add(sphere);
+        modelGroup.Children.Add(new AmbientLight(Colors.White));
+
+        return modelGroup;
         }
+    }
 
+    public class Earth : Object
+    {
+       public Earth()
+        {
+            Radius = 6301f;
+            Center = new Point3D(0, 0, 0);
+            texture = "textures/earth.jpg";
+        }
+    }
+
+    public class Moon : Object
+    {
+        public Moon()
+        {
+            Radius = 1737f;
+            Center = new Point3D(0, 384467f + 6301f, 0);
+            texture = "textures/moon.jpg";
+        }
     }
 }
