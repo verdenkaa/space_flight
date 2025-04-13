@@ -20,6 +20,8 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Input;
+using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace Space_Flight_Code
 {
@@ -28,14 +30,10 @@ namespace Space_Flight_Code
         private HelixViewport3D helixViewport;
         private Earth earth;
         private Moon moon;
+        private Satelite satelite;
         private DispatcherTimer animationTimer;
-        private double earthRotationAngle;
-        private double moonOrbitAngle;
-        private double moonSelfRotationAngle;
         private Object trackedObject;
-        private PerspectiveCamera defaultCamera;
         private bool isTracking;
-
 
 
 
@@ -50,18 +48,54 @@ namespace Space_Flight_Code
 
         private void InitializeCameraTracking()
         {
-            // Сохраняем начальные параметры камеры
-            defaultCamera = new PerspectiveCamera
-            {
-                Position = new Point3D(0, 500000, 1500000),
-                LookDirection = new Vector3D(0, -500000, -1500000),
-                UpDirection = new Vector3D(0, 1, 0),
-                FarPlaneDistance = 5000000
-            };
-
-            helixViewport.Camera = defaultCamera.Clone();
+            helixViewport.Camera = new PerspectiveCamera();
             helixViewport.MouseDown += Viewport_MouseDown;
         }
+
+
+        private void InitializeViewport()
+        {
+            helixViewport = new HelixViewport3D()
+            {
+                ZoomExtentsWhenLoaded = true,
+                Background = System.Windows.Media.Brushes.Black
+            };
+
+            var host = new ElementHost
+            {
+                Parent = panel1,
+                Dock = DockStyle.Fill,
+                Child = helixViewport
+            };
+
+
+            helixViewport.ShowCameraInfo = false;       // Отключает координаты камеры
+            helixViewport.ShowViewCube = false;         // Отключает куб ориентации
+            helixViewport.ShowFrameRate = true;        // Отключает FPS-счетчик
+            helixViewport.ShowCoordinateSystem = false; // Отключает оси координат
+            helixViewport.ShowCameraTarget = false;     // Отключает маркер центра вращения
+
+        }
+
+        private void InitializeObjects()
+        {
+            earth = new Earth();
+            moon = new Moon();
+            
+
+            helixViewport.Children.Add(new ModelVisual3D { Content = earth.Draw() });
+            helixViewport.Children.Add(new ModelVisual3D { Content = moon.Draw() });
+
+        }
+
+        private void InitializeAnimation()
+        {
+            animationTimer = new DispatcherTimer();
+            animationTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
+            animationTimer.Tick += AnimationTimer_Tick;
+        }
+
+
 
         private void Viewport_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -73,111 +107,41 @@ namespace Space_Flight_Code
                 {
                     trackedObject = FindObjectByModel(model);
                     isTracking = true;
+                    UpdateCameraTracking();
                 }
             }
         }
 
         private Object FindObjectByModel(Model3DGroup model)
         {
-            if (model == earth.Model) return earth;
-            if (model == moon.Model) return moon;
+            if (model == earth.Model)
+            {
+                label1.Text = "Отслеживается: Земля";
+                return earth;
+            }
+            if (model == moon.Model)
+            {
+                label1.Text = "Отслеживается: Луна";
+                return moon;
+            }
             return null;
         }
 
         private void UpdateCameraTracking()
         {
-            if (!isTracking || trackedObject == null) return;
+            if (!isTracking) return;
 
-            var currentCamera = helixViewport.Camera as PerspectiveCamera;
-            if (currentCamera == null) return;
+            helixViewport.Camera.LookAt(trackedObject.GetWorldPosition(), 0);
 
-            // Рассчитываем новую позицию камеры
-            var targetPosition = trackedObject.TransformGroup.Transform(trackedObject.Center);
-            var cameraOffset = new Vector3D(0, 0, trackedObject.Radius * 5);
-            var newPosition = targetPosition + cameraOffset;
-
-            // Плавное перемещение камеры
-            currentCamera.Position = Lerp(currentCamera.Position, newPosition, 0.5);
-            currentCamera.LookDirection = targetPosition - currentCamera.Position;
-            
-        }
-
-        private Point3D Lerp(Point3D a, Point3D b, double t)
-        {
-            return new Point3D(
-                a.X + (b.X - a.X) * t,
-                a.Y + (b.Y - a.Y) * t,
-                a.Z + (b.Z - a.Z) * t);
-        }
-
-
-        private void InitializeViewport()
-        {
-
-
-            // Создание WPF-элемента
-            helixViewport = new HelixViewport3D()
-            {
-                ZoomExtentsWhenLoaded = true,
-                Background = System.Windows.Media.Brushes.Black
-            };
-
-            // Настройка ElementHost
-            var host = new ElementHost
-            {
-                Parent = panel1,
-                Dock = DockStyle.Fill,
-                Child = helixViewport
-            };
-
-            //this.Controls.Add(host);
-
-            helixViewport.ShowCameraInfo = false;       // Отключает координаты камеры
-            helixViewport.ShowViewCube = false;         // Отключает куб ориентации
-            helixViewport.ShowFrameRate = true;        // Отключает FPS-счетчик
-            helixViewport.ShowCoordinateSystem = false; // Отключает оси координат
-            helixViewport.ShowCameraTarget = false;     // Отключает маркер центра вращения
-            
-
-
-            //helixViewport.Camera.LookAt(earth.Center, 1);
-
-
-            //helixViewport.ZoomExtents();
-
-        }
-
-        private void InitializeObjects()
-        {
-            earth = new Earth();
-            moon = new Moon();
-
-            helixViewport.Children.Add(new ModelVisual3D { Content = earth.Draw() });
-            helixViewport.Children.Add(new ModelVisual3D { Content = moon.Draw() });
-        }
-
-        private void InitializeAnimation()
-        {
-            animationTimer = new DispatcherTimer();
-            animationTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
-            animationTimer.Tick += AnimationTimer_Tick;
         }
 
         private void AnimationTimer_Tick(object sender, EventArgs e)
         {
-            const double earthRotationSpeed = 10; // Градусов/сек
-            const double moonOrbitSpeed = 10;      // Градусов/сек
-            const double moonRotationSpeed = 10;   // Градусов/сек 0.22 вроде относительно
+            const double earthRotationSpeed = 0.01; // Градусов/сек
+            const double moonRotationSpeed = 0.01;
 
-            earthRotationAngle += earthRotationSpeed * 0.001;
-            moonOrbitAngle += moonOrbitSpeed * 0.001;
-            moonSelfRotationAngle += moonRotationSpeed * 0.001;
-
-            earth.SelfRotation.Angle = earthRotationAngle % 360;
-
-            moon.SelfRotation.Angle = moonSelfRotationAngle % 360;
-
-            moon.UpdateOrbit(moonOrbitAngle);
+            earth.SelfRotation.Angle += earthRotationSpeed % 360;
+            moon.SelfRotation.Angle += moonRotationSpeed % 360;
 
             UpdateCameraTracking();
 
@@ -185,10 +149,9 @@ namespace Space_Flight_Code
         }
 
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            
-        }
+        
+
+
 
         private void trackBar1_ValueChanged(object sender, EventArgs e)
         {
@@ -213,107 +176,58 @@ namespace Space_Flight_Code
         private void resetbtn_Click(object sender, EventArgs e)
         {
             isTracking = false;
-            helixViewport.Camera = defaultCamera.Clone();
+            label1.Text = "Ничего не отслеживается";
             helixViewport.ZoomExtents();
         }
-    }
 
-    public class Object
-    {
-        public double Radius;
-        public Point3D Center;
-        public string texture;
-        public Model3DGroup Model;
-        public Transform3DGroup TransformGroup = new Transform3DGroup();
-        public AxisAngleRotation3D SelfRotation  = new AxisAngleRotation3D();
-        public RotateTransform3D RotationTransform;
+        private void button1_Click(object sender, EventArgs e)
+        {
+            satelite = new Satelite();
 
-        public Object()
-        {
-            RotationTransform = new RotateTransform3D(SelfRotation);
-            TransformGroup.Children.Add(RotationTransform);
-        }
-        public Point3D GetWorldPosition()
-        {
-            return TransformGroup.Transform(Center);
+            double latitude = (double)numericUpDown1.Value * Math.PI / 180;
+            double longitude = (double)numericUpDown2.Value * Math.PI / 180;
+
+            satelite.StartCoords(longitude, latitude);
+            satelite.Move = new Vector3D(satelite.Center.X + 10, satelite.Center.Y + 10, satelite.Center.Z + 10);
+            helixViewport.Children.Add(new ModelVisual3D { Content = satelite.Draw() });
         }
 
-        public Model3DGroup Draw()
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-
-            Model = CreateModelGroup();
-            return Model;
-            
-        }
-
-        private Model3DGroup CreateModelGroup()
-        {
-            var meshBuilder = new MeshBuilder();
-            meshBuilder.AddSphere(Center, Radius, 40, 40);
-
-
-
-            var material = new DiffuseMaterial(
-                    new ImageBrush
-                    {
-                        ImageSource = new BitmapImage(
-                            new Uri(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, texture))),
-                        Stretch = Stretch.Fill
-                    }
-                );
-            var sphere = new GeometryModel3D
+            if (comboBox1.SelectedIndex == 0)
             {
-                Geometry = meshBuilder.ToMesh(),
-                Material = material
-            };
+                isTracking = false;
+                label1.Text = "Ничего не отслеживается";
+                helixViewport.ZoomExtents();
+                trackedObject = null;
+            } else if (comboBox1.SelectedIndex == 1)
+                {
+                    label1.Text = "Отслеживается: Земля";
+                    trackedObject = earth;
+                }
+                else if (comboBox1.SelectedIndex == 2)
+                {
+                    label1.Text = "Отслеживается: Луна";
+                    trackedObject = moon;
+                }
+                else if (comboBox1.SelectedIndex == 3)
+                {
+                    label1.Text = "Отслеживается: Спутник";
+                    trackedObject = satelite;
+                }
 
+            if (trackedObject != null)
+            {
+                isTracking = true;
+                UpdateCameraTracking();
+            }
+        }
 
-            var modelGroup = new Model3DGroup();
-            modelGroup.Children.Add(sphere);
-            modelGroup.Children.Add(new AmbientLight(Colors.White));
-            modelGroup.Transform = TransformGroup;
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
 
-            return modelGroup;
         }
     }
 
-    public class Earth : Object
-    {
-       public Earth()
-        {
-            Radius = 6301f;
-            Center = new Point3D(0, 0, 0);
-            texture = "textures/earth.jpg";
-            SelfRotation.Axis = new Vector3D(0, 0, 1);
-        }
-    }
 
-    public class Moon : Object
-    {
-        private readonly TranslateTransform3D _orbitTransform = new TranslateTransform3D();
-        private readonly RotateTransform3D _orbitRotation = new RotateTransform3D();
-        private double orbitRadius;
-
-        public Moon()
-        {
-            Radius = 1737f;
-            Center = new Point3D(0, 0, 0);
-            texture = "textures/moon.jpg";
-            SelfRotation.Axis = new Vector3D(0, 0, 1);
-            orbitRadius = 384467f + 6301f;
-
-            TransformGroup.Children.Insert(0, _orbitRotation);
-            TransformGroup.Children.Insert(0, _orbitTransform);
-
-            UpdateOrbit(0);
-        }
-
-        public void UpdateOrbit(double angle)
-        {
-            _orbitTransform.OffsetX = orbitRadius * Math.Cos(angle * Math.PI / 180);
-            _orbitTransform.OffsetY = orbitRadius * Math.Sin(angle * Math.PI / 180);
-
-            _orbitRotation.Rotation = new AxisAngleRotation3D(new Vector3D(0, 0, 1), angle);
-        }
-    }
 }
