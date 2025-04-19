@@ -13,6 +13,7 @@ namespace Space_Flight_Code
     public class Object
     {
         public double Radius;
+        public double Mass;
         public Point3D Center;
         public string texture;
         public Model3DGroup Model;
@@ -68,17 +69,20 @@ namespace Space_Flight_Code
 
     public class Satelite : Object
     {
-        public Vector3D Move;
+        public Vector3D Velocity;
+        public double Speed;
+        public double Acceleration;
+        private const double TimeStep = 1;
 
         public Satelite()
         {
-
+            Velocity.Normalize();
         }
 
         public new Model3DGroup Draw()
         {
             var meshBuilder = new MeshBuilder();
-            meshBuilder.AddArrow(Center, Center + Move, 100);
+            meshBuilder.AddArrow(Center, Center + Velocity, 100);
 
             var arrow = new GeometryModel3D
             {
@@ -97,14 +101,51 @@ namespace Space_Flight_Code
 
         public void StartCoords(double longitude, double latitude)
         {
-            Point3D StartCoords = new Point3D(-6031f, 0, 0);
+            Point3D StartCoords = new Point3D(-6431f, 0, 0);
             Point3D NewCoords = new Point3D(0, 0, 0);
 
-            NewCoords.X = -6031f * (float)(Math.Cos(latitude) * Math.Cos(longitude));
-            NewCoords.Y = -6031f * (float)(Math.Cos(latitude) * Math.Sin(longitude));
-            NewCoords.Z = 6031f * (float)Math.Sin(latitude);
+            NewCoords.X = -6431f * (float)(Math.Cos(latitude) * Math.Cos(longitude));
+            NewCoords.Y = -6431f * (float)(Math.Cos(latitude) * Math.Sin(longitude));
+            NewCoords.Z = 6431f * (float)Math.Sin(latitude);
 
             Center = NewCoords;
+        }
+
+        public void UpdatePosition(Earth earth, Moon moon, double G)
+        {
+            // 1. Рассчитываем гравитационные силы
+            Vector3D earthToSat = Center - earth.Center;
+            double rEarth = earthToSat.Length;
+            Vector3D aGravityEarth = -G * earth.Mass / (rEarth * rEarth * rEarth) * earthToSat;
+
+            Vector3D moonToSat = Center - moon.Center;
+            double rMoon = moonToSat.Length;
+            Vector3D aGravityMoon = -G * moon.Mass / (rMoon * rMoon * rMoon) * moonToSat;
+
+            // 2. Ускорение от двигателя
+            Vector3D aEngine = Velocity * Acceleration;
+
+            // 3. Суммарное ускорение
+            Vector3D totalAcceleration = aGravityEarth + aGravityMoon + aEngine;
+
+            // 4. Разложение ускорения на компоненты
+            double tangentialAccel = Vector3D.DotProduct(totalAcceleration, Velocity);
+            Vector3D normalAccel = totalAcceleration - (Velocity * tangentialAccel);
+
+            // 5. Обновление скорости
+            Speed += tangentialAccel * TimeStep;
+            Speed = Math.Max(Speed, 0); // Запрет отрицательной скорости
+
+            // 6. Обновление направления
+            if (Speed > 0.001)
+            {
+                Vector3D newVelocity = Velocity * Speed + normalAccel * TimeStep;
+                newVelocity.Normalize();
+                Velocity = newVelocity;
+            }
+
+            // 7. Обновление позиции
+            Center += Velocity * Speed * TimeStep;
         }
     }
 
@@ -113,6 +154,7 @@ namespace Space_Flight_Code
         public Earth()
         {
             Radius = 6301f;
+            Mass = 5.972e24;
             Center = new Point3D(0, 0, 0);
             texture = "textures/earth.jpg";
         }
@@ -124,6 +166,7 @@ namespace Space_Flight_Code
         public Moon()
         {
             Radius = 1737f;
+            Mass = 7.342e22;
             Center = new Point3D(0, 384467f, 0);
             texture = "textures/moon.jpg";
 

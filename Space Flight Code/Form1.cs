@@ -34,6 +34,7 @@ namespace Space_Flight_Code
         private DispatcherTimer animationTimer;
         private Object trackedObject;
         private bool isTracking;
+        private const double G = 6.67430e-11;
 
 
 
@@ -72,7 +73,7 @@ namespace Space_Flight_Code
             helixViewport.ShowCameraInfo = false;       // Отключает координаты камеры
             helixViewport.ShowViewCube = false;         // Отключает куб ориентации
             helixViewport.ShowFrameRate = true;        // Отключает FPS-счетчик
-            helixViewport.ShowCoordinateSystem = false; // Отключает оси координат
+            helixViewport.ShowCoordinateSystem = true; // Отключает оси координат
             helixViewport.ShowCameraTarget = false;     // Отключает маркер центра вращения
 
         }
@@ -124,6 +125,11 @@ namespace Space_Flight_Code
                 label1.Text = "Отслеживается: Луна";
                 return moon;
             }
+            if (model == satelite.Model)
+            {
+                label1.Text = "Отслеживается: Спутник";
+                return satelite;
+            }
             return null;
         }
 
@@ -143,9 +149,13 @@ namespace Space_Flight_Code
             earth.SelfRotation.Angle += earthRotationSpeed % 360;
             moon.SelfRotation.Angle += moonRotationSpeed % 360;
 
+            satelite.UpdatePosition(earth, moon, G);
+
             UpdateCameraTracking();
 
             helixViewport.InvalidateVisual();
+
+            label13.Text = satelite.Center.X.ToString() + " " + satelite.Center.Y.ToString() + " " + satelite.Center.Z.ToString();
         }
 
 
@@ -173,12 +183,6 @@ namespace Space_Flight_Code
             }
         }
 
-        private void resetbtn_Click(object sender, EventArgs e)
-        {
-            isTracking = false;
-            label1.Text = "Ничего не отслеживается";
-            helixViewport.ZoomExtents();
-        }
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -188,8 +192,32 @@ namespace Space_Flight_Code
             double longitude = (double)numericUpDown2.Value * Math.PI / 180;
 
             satelite.StartCoords(longitude, latitude);
-            satelite.Move = new Vector3D(satelite.Center.X + 10, satelite.Center.Y + 10, satelite.Center.Z + 10);
+
+
+            Vector3D Velocity = ReadVelocity();
+
+            satelite.Velocity = Velocity;
+            satelite.Mass = (double)numericUpDown6.Value;
+            satelite.Speed = (double)numericUpDown3.Value / 1000.0;
+            satelite.Acceleration = (double)numericUpDown4.Value / 1000.0;
+
+
             helixViewport.Children.Add(new ModelVisual3D { Content = satelite.Draw() });
+
+            button1.Enabled = false;
+            button2.Enabled = true;
+            startbtn.Enabled = true;
+        }
+
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            satelite = new Satelite();
+            helixViewport.Children.RemoveAt(3);
+
+            button1.Enabled = true;
+            button2.Enabled = false;
+            startbtn.Enabled = false;
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -223,10 +251,22 @@ namespace Space_Flight_Code
             }
         }
 
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        private Vector3D ReadVelocity()
         {
+            string input = maskedTextBox1.Text.Replace(" ", "0");
 
+            double x = double.Parse(input.Substring(0, 3).ToString()) + double.Parse(input.Substring(0, 3).Substring(1, 2)) / 100.0;
+            double y = double.Parse(input.Substring(3, 3).ToString()) + double.Parse(input.Substring(3, 3).Substring(1, 2)) / 100.0;
+            double z = double.Parse(input.Substring(6, 3).ToString()) + double.Parse(input.Substring(6, 3).Substring(1, 2)) / 100.0;
+
+            double lenght = Math.Sqrt(Math.Pow(x, 2) + Math.Pow(y, 2) + Math.Pow(z, 2));
+
+            Vector3D v = new Vector3D(x, y, z);
+            v.Normalize();
+            label13.Text = x.ToString() + " " + y.ToString() + " " + z.ToString() + " " + lenght.ToString();
+            return v;    
         }
+
     }
 
 
