@@ -1,12 +1,14 @@
 ﻿using HelixToolkit.Wpf;
-using System.Windows.Media.Imaging;
-using System.Windows.Media;
+using Space_Flight_Code.Space_Flight_Code;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Media.TextFormatting;
-using System.Windows;
-using System.Reflection;
-using System.Windows.Forms;
 
 namespace Space_Flight_Code
 {
@@ -17,6 +19,7 @@ namespace Space_Flight_Code
         public Point3D Center;
         public string texture;
         public Model3DGroup Model;
+        public const double RotationSpeed = 0.001;
         public Transform3DGroup TransformGroup = new Transform3DGroup();
         public AxisAngleRotation3D SelfRotation = new AxisAngleRotation3D();
         public RotateTransform3D RotationTransform;
@@ -27,6 +30,7 @@ namespace Space_Flight_Code
             RotationTransform = new RotateTransform3D(SelfRotation);
             TransformGroup.Children.Add(RotationTransform);
             SelfRotation.Axis = new Vector3D(0, 0, 1);
+
         }
         public Point3D GetWorldPosition()
         {
@@ -64,90 +68,100 @@ namespace Space_Flight_Code
             return Model;
         }
 
-       
+        public void UpdatePosition(int speed_anim)
+        {
+            SelfRotation.Angle += RotationSpeed * speed_anim % 360;
+        }
+
+
     }
 
-    public class Satelite : Object
+public class Satelite : Object
+{
+    public Vector3D Velocity;
+    public double Speed;
+    //public double TimeStep = 1;
+    private Physics Core;
+
+    private TubeVisual3D trajectoryTube;
+    private List<Point3D> points = new List<Point3D>();
+    private const int MAX_POINTS = 10000;
+
+    public Satelite()
     {
-        public Vector3D Velocity;
-        public double Speed;
-        public double Acceleration;
-        private const double TimeStep = 1;
+        InitializeTrajectory();
+    }
 
-        public Satelite()
+    private void InitializeTrajectory()
+    {
+        trajectoryTube = new TubeVisual3D
         {
-            Velocity.Normalize();
-        }
+            Diameter = 100,
+            ThetaDiv = 3,
+            Path = new Point3DCollection(),
+            Material = Materials.Green,
+            BackMaterial = Materials.Green
+        };
 
-        public new Model3DGroup Draw()
-        {
-            var meshBuilder = new MeshBuilder();
-            meshBuilder.AddArrow(Center, Center + Velocity, 100);
+        Core = new Physics();
+    }
 
-            var arrow = new GeometryModel3D
-            {
-                Geometry = meshBuilder.ToMesh(),
-                Material = new DiffuseMaterial(Brushes.Red)
-            };
+    public TubeVisual3D DrawTrajectory()
+    {
+        return trajectoryTube;
+    }
 
+    public void StartCoords(double longitude, double latitude, int height)
+    {
+        Point3D StartCoords = new Point3D(-6431f - height, 0, 0);
+        Point3D NewCoords = new Point3D(0, 0, 0);
 
-            Model = new Model3DGroup();
-            Model.Children.Add(arrow);
-            Model.Children.Add(new AmbientLight(Colors.White));
-            Model.Transform = TransformGroup;
-
-            return Model;
-        }
-
-        public void StartCoords(double longitude, double latitude)
-        {
-            Point3D StartCoords = new Point3D(-6431f, 0, 0);
-            Point3D NewCoords = new Point3D(0, 0, 0);
-
-            NewCoords.X = -6431f * (float)(Math.Cos(latitude) * Math.Cos(longitude));
-            NewCoords.Y = -6431f * (float)(Math.Cos(latitude) * Math.Sin(longitude));
-            NewCoords.Z = 6431f * (float)Math.Sin(latitude);
+        NewCoords.X = StartCoords.X * (float)(Math.Cos(latitude) * Math.Cos(longitude));
+        NewCoords.Y = StartCoords.X * (float)(Math.Cos(latitude) * Math.Sin(longitude));
+        NewCoords.Z = -StartCoords.X * (float)Math.Sin(latitude);
 
             Center = NewCoords;
-        }
 
-        public void UpdatePosition(Earth earth, Moon moon, double G)
-        {
-            // 1. Рассчитываем гравитационные силы
-            Vector3D earthToSat = Center - earth.Center;
-            double rEarth = earthToSat.Length;
-            Vector3D aGravityEarth = -G * earth.Mass / (rEarth * rEarth * rEarth) * earthToSat;
+        AddPointToTrajectory(Center);
+    }
 
-            Vector3D moonToSat = Center - moon.Center;
-            double rMoon = moonToSat.Length;
-            Vector3D aGravityMoon = -G * moon.Mass / (rMoon * rMoon * rMoon) * moonToSat;
-
-            // 2. Ускорение от двигателя
-            Vector3D aEngine = Velocity * Acceleration;
-
-            // 3. Суммарное ускорение
-            Vector3D totalAcceleration = aGravityEarth + aGravityMoon + aEngine;
-
-            // 4. Разложение ускорения на компоненты
-            double tangentialAccel = Vector3D.DotProduct(totalAcceleration, Velocity);
-            Vector3D normalAccel = totalAcceleration - (Velocity * tangentialAccel);
-
-            // 5. Обновление скорости
-            Speed += tangentialAccel * TimeStep;
-            Speed = Math.Max(Speed, 0); // Запрет отрицательной скорости
-
-            // 6. Обновление направления
-            if (Speed > 0.001)
+    public void UpdatePosition(Earth earth, Moon moon, int speed_anim)
+    {
+            for (int i = 0; i < speed_anim; i++)
             {
-                Vector3D newVelocity = Velocity * Speed + normalAccel * TimeStep;
-                newVelocity.Normalize();
-                Velocity = newVelocity;
+                (Center, Velocity) = Core.GravityEvaluate(this, earth, moon);
             }
 
-            // 7. Обновление позиции
-            Center += Velocity * Speed * TimeStep;
-        }
+        AddPointToTrajectory(Center);
     }
+
+    private void AddPointToTrajectory(Point3D newPoint)
+    {
+        points.Add(newPoint);
+        
+        if (points.Count > MAX_POINTS)
+        {
+            points.RemoveAt(0);
+        }
+        
+        // Обновляем путь траектории
+        trajectoryTube.Path = new Point3DCollection(points);
+    }
+
+
+
+    // Метод для обновления внешнего вида траектории
+    public void SetTrajectoryStyle()
+    {
+            //trajectoryTube.Diameter = diameter;
+            Color red = System.Windows.Media.Color.FromRgb(255, 0, 0);
+            trajectoryTube.Material = new DiffuseMaterial(new SolidColorBrush(red));
+        trajectoryTube.BackMaterial = new DiffuseMaterial(new SolidColorBrush(red));
+    }
+
+    // Свойство для доступа к траектории извне
+    public TubeVisual3D Trajectory => trajectoryTube;
+}
 
     public class Earth : Object
     {
@@ -162,14 +176,12 @@ namespace Space_Flight_Code
 
     public class Moon : Object
     {
-        
         public Moon()
         {
             Radius = 1737f;
             Mass = 7.342e22;
-            Center = new Point3D(0, 384467f, 0);
+            Center = new Point3D(0, 384467f, 0); // Начальная позиция
             texture = "textures/moon.jpg";
-
         }
     }
 
