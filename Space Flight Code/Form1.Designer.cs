@@ -28,11 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea13 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend13 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series37 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series38 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.Series series39 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.panel1 = new System.Windows.Forms.Panel();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.startbtn = new System.Windows.Forms.Button();
@@ -69,7 +69,6 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.chartEnergy = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            this.label16 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
@@ -565,49 +564,39 @@
             // 
             // chartEnergy
             // 
-            chartArea13.Name = "EnergyArea";
-            this.chartEnergy.ChartAreas.Add(chartArea13);
-            legend13.Name = "Legend1";
-            this.chartEnergy.Legends.Add(legend13);
+            chartArea2.Name = "EnergyArea";
+            this.chartEnergy.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend1";
+            this.chartEnergy.Legends.Add(legend2);
             this.chartEnergy.Location = new System.Drawing.Point(25, 390);
             this.chartEnergy.Name = "chartEnergy";
-            series37.BorderWidth = 2;
-            series37.ChartArea = "EnergyArea";
-            series37.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series37.Legend = "Legend1";
-            series37.Name = "Kinetic";
-            series38.BorderWidth = 2;
-            series38.ChartArea = "EnergyArea";
-            series38.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series38.Legend = "Legend1";
-            series38.Name = "Potential";
-            series39.BorderWidth = 2;
-            series39.ChartArea = "EnergyArea";
-            series39.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
-            series39.Legend = "Legend1";
-            series39.Name = "Total";
-            this.chartEnergy.Series.Add(series37);
-            this.chartEnergy.Series.Add(series38);
-            this.chartEnergy.Series.Add(series39);
+            series4.BorderWidth = 2;
+            series4.ChartArea = "EnergyArea";
+            series4.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series4.Legend = "Legend1";
+            series4.Name = "Kinetic";
+            series5.BorderWidth = 2;
+            series5.ChartArea = "EnergyArea";
+            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series5.Legend = "Legend1";
+            series5.Name = "Potential";
+            series6.BorderWidth = 2;
+            series6.ChartArea = "EnergyArea";
+            series6.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
+            series6.Legend = "Legend1";
+            series6.Name = "Total";
+            this.chartEnergy.Series.Add(series4);
+            this.chartEnergy.Series.Add(series5);
+            this.chartEnergy.Series.Add(series6);
             this.chartEnergy.Size = new System.Drawing.Size(556, 300);
             this.chartEnergy.TabIndex = 24;
             this.chartEnergy.Text = "chart1";
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(389, 348);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(51, 16);
-            this.label16.TabIndex = 25;
-            this.label16.Text = "label16";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1561, 786);
-            this.Controls.Add(this.label16);
             this.Controls.Add(this.chartEnergy);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
@@ -621,8 +610,8 @@
             this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.panel1);
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "space flight";
+            this.Text = "space flight";
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
@@ -679,7 +668,6 @@
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.DataVisualization.Charting.Chart chartEnergy;
-        private System.Windows.Forms.Label label16;
     }
 }
 

@@ -44,12 +44,12 @@ namespace Space_Flight_Code
         private double PotentialEnergy;
         private double TotalEnergy;
 
-        private double simTime = 0.0; // отслеживаем симуляционное время в секундах
+        private double simTime = 0.0;
         private const int MAX_POINTS_ON_CHART = 5000;
-        private const int ENERGY_PLOT_DECIMATION = 5; // рисовать каждую N-ю точку (1 = каждую)
+        private const int ENERGY_PLOT_DECIMATION = 5;
         private int energyFrameCounter = 0;
 
-        private const double ENERGY_WINDOW_SECONDS = 5000.0; // показывать последние 600 секунд (10 минут
+        private const double ENERGY_WINDOW_SECONDS = 5000.0;
 
 
 
@@ -166,9 +166,7 @@ namespace Space_Flight_Code
 
             satelite.UpdatePosition(earth, moon, speed_anim);
 
-            label16.Text = $"{moon.GetWorldPosition().X} {moon.GetWorldPosition().Y} {moon.GetWorldPosition().Z}";
-
-
+           
             simTime += speed_anim;
 
             energyFrameCounter++;
@@ -204,15 +202,12 @@ namespace Space_Flight_Code
                 trimSeries(sPE);
                 trimSeries(sTE);
 
-                // Жёстко фиксируем видимую область по X
                 ca.AxisX.Minimum = Math.Max(0.0, simTime - ENERGY_WINDOW_SECONDS);
                 ca.AxisX.Maximum = Math.Max(ca.AxisX.Minimum + 1.0, simTime);
 
                 ca.AxisY.Minimum = -40000;
                 ca.AxisY.Maximum = 40000;
-                // Опционально: автоподстройка по Y (чтобы окно по Y автоматически масштабировалось под видимые точки)
-                // Если хочешь фиксированный Y, задай ca.AxisY.Minimum и ca.AxisY.Maximum константами.
-                //ca.RecalculateAxesScale(); // обновить оси
+                //ca.RecalculateAxesScale();
             }
 
 
@@ -459,6 +454,7 @@ namespace Space_Flight_Code
 
 
         }
+
     }
 
 

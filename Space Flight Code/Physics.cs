@@ -68,20 +68,17 @@ namespace Space_Flight_Code
 
             public (double KineticJ, double PotentialJ, double TotalJ) EvaluateEnergies(Satelite satelite, Earth earth, Moon moon)
             {
-                // Масса спутника (kg)
                 double mSat = satelite.Mass;
 
-                // Скорость в m/s (satelite.Velocity хранится в km/s в вашей модели)
+                // Скорость в m/s
                 double v_m_s = satelite.Velocity.Length * 1000.0;
                 double kineticJ = 0.5 * mSat * v_m_s * v_m_s;
 
-                // Потенциальная энергия от Земли и Луны (в Дж): U = - G * m_sat * M / r (r в метрах)
                 double potentialJ = 0.0;
 
-                // расстояния в km -> переводим в метры
                 Vector3D toEarth = (Vector3D)(earth.Center - satelite.Center);
                 double distE_km = toEarth.Length;
-                if (distE_km > 1e-9)
+                if (distE_km > 1e-9) // обработка слишком близкого расположения
                 {
                     double rE_m = distE_km * 1000.0;
                     potentialJ += -G_SI * mSat * earth.Mass / rE_m;

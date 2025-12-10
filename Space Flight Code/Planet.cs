@@ -144,22 +144,19 @@ public class Satelite : Object
             points.RemoveAt(0);
         }
         
-        // Обновляем путь траектории
         trajectoryTube.Path = new Point3DCollection(points);
     }
 
 
 
-    // Метод для обновления внешнего вида траектории
     public void SetTrajectoryStyle()
     {
-            //trajectoryTube.Diameter = diameter;
-            Color red = System.Windows.Media.Color.FromRgb(255, 0, 0);
-            trajectoryTube.Material = new DiffuseMaterial(new SolidColorBrush(red));
+        Color red = System.Windows.Media.Color.FromRgb(255, 0, 0);
+        trajectoryTube.Material = new DiffuseMaterial(new SolidColorBrush(red));
         trajectoryTube.BackMaterial = new DiffuseMaterial(new SolidColorBrush(red));
     }
 
-    // Свойство для доступа к траектории извне
+    // для доступа к траектории извне
     public TubeVisual3D Trajectory => trajectoryTube;
 }
 
@@ -180,7 +177,7 @@ public class Satelite : Object
         {
             Radius = 1737f;
             Mass = 7.342e22;
-            Center = new Point3D(0, 384467f, 0); // Начальная позиция
+            Center = new Point3D(0, 384467f, 0);
             texture = "textures/moon.jpg";
         }
     }
